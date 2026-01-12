@@ -1,0 +1,82 @@
+name: Build Emby Plugin DLL
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  PLUGIN_NAME: EmbyBangumiHanimePlugin
+  DOTNET_VERSION: '6.0.x'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build Release
+      run: dotnet build --configuration Release --no-restore
+
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
+
+    - name: Publish
+      run: dotnet publish --configuration Release --output ./publish
+
+    - name: Create DLL package
+      run: |
+        mkdir -p ./release
+        cp ./publish/${{ env.PLUGIN_NAME }}.dll ./release/
+        echo '{"name":"${{ env.PLUGIN_NAME }}","version":"1.0.0","description":"Anime metadata scraper for Emby","overview":"Scrapes anime metadata from Bangumi and Hanime"}' > ./release/plugin.json
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: emby-plugin-dll
+        path: ./release/
+        retention-days: 30
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: emby-plugin-dll
+        path: ./release/
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: v1.0.${{ github.run_number }}
+        release_name: Release v1.0.${{ github.run_number }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Release Asset
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./release/${{ env.PLUGIN_NAME }}.dll
+        asset_name: ${{ env.PLUGIN_NAME }}.dll
+        asset_content_type: application/octet-stream
