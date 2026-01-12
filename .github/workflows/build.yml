@@ -23,17 +23,15 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Setup NuGet sources (force official only)
+    - name: Setup NuGet sources (add Emby/MediaBrowser source)
       run: |
-        # Remove any existing NuGet.Config that might point to Emby sources
-        rm -f NuGet.Config
-        
-        # Create a NuGet.Config that ONLY uses official sources
+        # Create a NuGet.Config that includes both official and Emby sources
         cat > NuGet.Config << EOF
         <?xml version="1.0" encoding="utf-8"?>
         <configuration>
           <packageSources>
             <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+            <add key="emby" value="https://nuget.emby.media/" />
           </packageSources>
         </configuration>
         EOF
