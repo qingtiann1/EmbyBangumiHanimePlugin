@@ -25,6 +25,9 @@ jobs:
 
     - name: Restore dependencies
       run: dotnet restore
+      env:
+        NUGET_CREDENTIALPROVIDER_SESSIONTOKENCACHE_ENABLED: true
+        NUGET_XMLDOC_MODE: skip
 
     - name: Build Release
       run: dotnet build --configuration Release --no-restore
