@@ -68,25 +68,3 @@ jobs:
         name: emby-plugin-dll
         path: ./release/
         retention-days: 30
-
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-    - name: Download artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: emby-plugin-dll
-        path: ./release/
-
-    - name: Create Release
-      id: create_release
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: v1.0.${{ github.run_number }}
-        name: Release v1.0.${{ github.run_number }}
-        draft: false
-        prerelease: false
-        files: ./release/${{ env.PLUGIN_NAME }}.dll
