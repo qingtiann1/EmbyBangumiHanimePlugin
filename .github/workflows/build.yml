@@ -23,16 +23,6 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Create NuGet.Config for Emby packages
-      run: |
-        echo '<?xml version="1.0" encoding="utf-8"?>' > NuGet.Config
-        echo '<configuration>' >> NuGet.Config
-        echo '  <packageSources>' >> NuGet.Config
-        echo '    <add key="emby" value="https://nuget.emby.media/" />' >> NuGet.Config
-        echo '    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />' >> NuGet.Config
-        echo '  </packageSources>' >> NuGet.Config
-        echo '</configuration>' >> NuGet.Config
-
     - name: Restore dependencies
       run: dotnet restore
       env:
@@ -60,3 +50,25 @@ jobs:
         name: emby-plugin-dll
         path: ./release/
         retention-days: 30
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Download artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: emby-plugin-dll
+        path: ./release/
+
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v1.0.${{ github.run_number }}
+        name: Release v1.0.${{ github.run_number }}
+        draft: false
+        prerelease: false
+        files: ./release/${{ env.PLUGIN_NAME }}.dll
