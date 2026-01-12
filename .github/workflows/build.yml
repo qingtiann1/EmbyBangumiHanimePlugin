@@ -23,18 +23,21 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Restore dependencies
+    - name: Create NuGet.Config for Emby packages
       run: |
-        # Create a temporary NuGet.Config to work around SSL issues
         echo '<?xml version="1.0" encoding="utf-8"?>' > NuGet.Config
         echo '<configuration>' >> NuGet.Config
         echo '  <packageSources>' >> NuGet.Config
+        echo '    <add key="emby" value="https://nuget.emby.media/" />' >> NuGet.Config
         echo '    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />' >> NuGet.Config
         echo '  </packageSources>' >> NuGet.Config
         echo '</configuration>' >> NuGet.Config
-        
-        dotnet restore
-        rm NuGet.Config
+
+    - name: Restore dependencies
+      run: dotnet restore
+      env:
+        NUGET_CREDENTIALPROVIDER_SESSIONTOKENCACHE_ENABLED: true
+        NUGET_XMLDOC_MODE: skip
 
     - name: Build Release
       run: dotnet build --configuration Release --no-restore
