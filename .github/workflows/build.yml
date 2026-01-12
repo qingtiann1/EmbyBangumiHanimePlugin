@@ -23,18 +23,23 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Setup NuGet sources (add Emby/MediaBrowser source)
+    - name: Remove any existing NuGet.Config to avoid SSL issues
       run: |
-        # Create a NuGet.Config that includes both official and Emby sources
+        ls -la
+        rm -f NuGet.Config || true
+        echo "Removed any existing NuGet.Config file"
+
+    - name: Create fresh NuGet.Config with official source only
+      run: |
         cat > NuGet.Config << EOF
         <?xml version="1.0" encoding="utf-8"?>
         <configuration>
           <packageSources>
             <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-            <add key="emby" value="https://nuget.emby.media/" />
           </packageSources>
         </configuration>
         EOF
+        cat NuGet.Config
 
     - name: Restore dependencies
       run: dotnet restore
