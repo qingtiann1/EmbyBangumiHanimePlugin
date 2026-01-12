@@ -8,11 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Jellyfin.Common" Version="10.8.9" />
-    <PackageReference Include="Jellyfin.Server.Core" Version="10.8.9" />
-    <PackageReference Include="Jellyfin.Model" Version="10.8.9" />
-    <PackageReference Include="Jellyfin.Controller" Version="10.8.9" />
-    <PackageReference Include="System.Text.Json" Version="7.0.0" />
+    <PackageReference Include="Jellyfin.Common" Version="10.8.11" />
+    <PackageReference Include="Jellyfin.Server" Version="10.8.11" />
+    <PackageReference Include="Jellyfin.Model" Version="10.8.11" />
+    <PackageReference Include="Jellyfin.Controller" Version="10.8.11" />
+    <PackageReference Include="System.Text.Json" Version="7.0.4" />
   </ItemGroup>
 
   <ItemGroup>
