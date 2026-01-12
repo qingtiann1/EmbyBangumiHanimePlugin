@@ -1,0 +1,1 @@
+# EmbyBangumiHanimePlugin
