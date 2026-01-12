@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bangumi Hanime 配置</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 8px; }
+        button { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer; }
+        button:hover { background-color: #45a049; }
+        .section { margin-bottom: 30px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Bangumi Hanime 插件配置</h1>
+    
+    <div class="section">
+        <h2>Bangumi 配置</h2>
+        <div class="form-group">
+            <label for="bangumi-api-key">Bangumi API Key:</label>
+            <input type="text" id="bangumi-api-key" placeholder="输入 Bangumi API Key">
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>Hanime 配置</h2>
+        <div class="form-group">
+            <label for="hanime-username">Hanime 用户名:</label>
+            <input type="text" id="hanime-username" placeholder="输入 Hanime 用户名">
+        </div>
+        <div class="form-group">
+            <label for="hanime-password">Hanime 密码:</label>
+            <input type="password" id="hanime-password" placeholder="输入 Hanime 密码">
+        </div>
+        <div class="form-group">
+            <label for="hanime-cookie">或使用 Cookie 登录:</label>
+            <input type="text" id="hanime-cookie" placeholder="输入 Hanime Cookie 字符串">
+        </div>
+    </div>
+    
+    <button onclick="saveSettings()">保存设置</button>
+    
+    <script>
+        function saveSettings() {
+            const settings = {
+                BangumiApiKey: document.getElementById('bangumi-api-key').value,
+                HanimeUsername: document.getElementById('hanime-username').value,
+                HanimePassword: document.getElementById('hanime-password').value,
+                HanimeCookie: document.getElementById('hanime-cookie').value
+            };
+            
+            // 发送保存请求到 Emby API
+            fetch('/emby/Plugins/Configuration', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Emby-Authorization': 'MediaBrowser Client="Emby", Device="Web", DeviceId="1", Version="1.0"'
+                },
+                body: JSON.stringify(settings)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('设置已保存!');
+            })
+            .catch(error => {
+                console.error('保存失败:', error);
+                alert('保存失败，请检查网络连接');
+            });
+        }
+        
+        // 加载现有设置
+        function loadSettings() {
+            fetch('/emby/Plugins/Configuration')
+                .then(response => response.json())
+                .then(settings => {
+                    document.getElementById('bangumi-api-key').value = settings.BangumiApiKey || '';
+                    document.getElementById('hanime-username').value = settings.HanimeUsername || '';
+                    document.getElementById('hanime-cookie').value = settings.HanimeCookie || '';
+                })
+                .catch(error => console.error('加载设置失败:', error));
+        }
+        
+        // 页面加载时获取现有设置
+        window.onload = loadSettings;
+    </script>
+</body>
+</html>
