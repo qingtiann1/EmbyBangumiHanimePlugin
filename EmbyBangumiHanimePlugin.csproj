@@ -8,13 +8,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediaBrowser.Server.Implementations" Version="4.8.0.0">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="MediaBrowser.Common" Version="4.8.0.0">
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="System.Text.Json" Version="6.0.0" />
+    <PackageReference Include="Jellyfin.Server" Version="10.8.9" />
+    <PackageReference Include="Jellyfin.Controller" Version="10.8.9" />
+    <PackageReference Include="Jellyfin.Model" Version="10.8.9" />
+    <PackageReference Include="System.Text.Json" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
