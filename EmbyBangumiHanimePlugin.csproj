@@ -4,16 +4,18 @@
     <TargetFramework>net6.0</TargetFramework>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
     <FileVersion>1.0.0.0</FileVersion>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <OutputType>Library</OutputType>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MediaBrowser.Server.Core" Version="4.8.0.80" />
-    <PackageReference Include="MediaBrowser.Model" Version="4.8.0.80" />
-    
-    <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
     <PackageReference Include="System.Text.Json" Version="7.0.4" />
+    <PackageReference Include="MediaBrowser.Server.Core" Version="4.8.0.80" />
+    <PackageReference Include="Emby.Server.Core" Version="4.8.0.80" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Configuration.config.html" />
   </ItemGroup>
 
 </Project>
