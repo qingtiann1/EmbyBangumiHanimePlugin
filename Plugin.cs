@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace EmbyBangumiHanimePlugin
 {
-    public class Plugin
+    public class Plugin : IMetadataProvider
     {
         private static readonly HttpClient _httpClient = new HttpClient();
         private DateTime _bangumiTokenExpiry;
@@ -41,19 +41,19 @@ namespace EmbyBangumiHanimePlugin
         {
             try
             {
-                var configFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bangumi-hanime-config.json");
-                if (File.Exists(configFile))
+                var configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
+                    "bangumi-hanime-config.json");
+                if (File.Exists(configPath))
                 {
-                    var json = File.ReadAllText(configFile);
+                    var json = File.ReadAllText(configPath);
                     Configuration = JsonSerializer.Deserialize<PluginConfiguration>(json) ?? new PluginConfiguration();
                     
-                    // 检查令牌是否即将过期（小于30天）
-                    if (Configuration.BangumiTokenExpiryTicks > 0)
+                    // 检查令牌是否即将过期
+                    if (Configuration.BangumiTokenExpiry > 0)
                     {
-                        var expiry = new DateTime(Configuration.BangumiTokenExpiryTicks);
+                        var expiry = DateTime.FromBinary(Configuration.BangumiTokenExpiry);
                         if (DateTime.UtcNow >= expiry.AddDays(-30))
                         {
-                            // 令牌即将过期，需要重新授权
                             _isBangumiAuthenticated = false;
                         }
                         else
@@ -71,13 +71,14 @@ namespace EmbyBangumiHanimePlugin
         }
 
         // 保存配置
-        private void SaveConfiguration()
+        public void SaveConfiguration()
         {
             try
             {
-                var configFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "bangumi-hanime-config.json");
+                var configPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
+                    "bangumi-hanime-config.json");
                 var json = JsonSerializer.Serialize(Configuration, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(configFile, json);
+                File.WriteAllText(configPath, json);
             }
             catch (Exception ex)
             {
@@ -92,7 +93,7 @@ namespace EmbyBangumiHanimePlugin
             {
                 var clientId = Configuration.BangumiClientId;
                 var clientSecret = Configuration.BangumiClientSecret;
-                var redirectUri = "urn:ietf:wg:oauth:2.0:oob"; // 使用 OOB 方式
+                var redirectUri = "urn:ietf:wg:oauth:2.0:oob";
 
                 // 使用授权码获取访问令牌
                 var tokenUrl = "https://bgm.tv/oauth/access_token";
@@ -115,7 +116,7 @@ namespace EmbyBangumiHanimePlugin
                     {
                         Configuration.BangumiAccessToken = tokenData.AccessToken;
                         Configuration.BangumiRefreshToken = tokenData.RefreshToken;
-                        Configuration.BangumiTokenExpiryTicks = DateTime.UtcNow.AddSeconds(tokenData.ExpiresIn).Ticks;
+                        Configuration.BangumiTokenExpiry = DateTime.UtcNow.AddSeconds(tokenData.ExpiresIn).ToBinary();
                         
                         SaveConfiguration();
                         
@@ -186,7 +187,7 @@ namespace EmbyBangumiHanimePlugin
                     {
                         Configuration.BangumiAccessToken = tokenData.AccessToken;
                         Configuration.BangumiRefreshToken = tokenData.RefreshToken;
-                        Configuration.BangumiTokenExpiryTicks = DateTime.UtcNow.AddSeconds(tokenData.ExpiresIn).Ticks;
+                        Configuration.BangumiTokenExpiry = DateTime.UtcNow.AddSeconds(tokenData.ExpiresIn).ToBinary();
                         
                         SaveConfiguration();
                         return true;
@@ -207,7 +208,6 @@ namespace EmbyBangumiHanimePlugin
         {
             try
             {
-                // 注意：hanime1.me 网站可能需要特殊处理，这里提供基本框架
                 var loginUrl = "https://members.hanime.tv/rapi/v7/login";
                 
                 // 构建登录数据
@@ -241,7 +241,6 @@ namespace EmbyBangumiHanimePlugin
                     
                     if (loginResponse != null && loginResponse.Success)
                     {
-                        // 保存会话信息
                         Configuration.HanimeSession = responseContent;
                         Configuration.HanimeUsername = username;
                         
@@ -291,8 +290,8 @@ namespace EmbyBangumiHanimePlugin
         public async Task<string> GetBangumiMetadataAsync(string query, CancellationToken cancellationToken = default)
         {
             // 检查令牌是否即将过期
-            if (Configuration.BangumiTokenExpiryTicks > 0 && 
-                new DateTime(Configuration.BangumiTokenExpiryTicks) <= DateTime.UtcNow.AddDays(1))
+            if (Configuration.BangumiTokenExpiry > 0 && 
+                DateTime.FromBinary(Configuration.BangumiTokenExpiry) <= DateTime.UtcNow.AddDays(1))
             {
                 await RefreshBangumiTokenAsync(cancellationToken);
             }
@@ -302,7 +301,7 @@ namespace EmbyBangumiHanimePlugin
 
             try
             {
-                var url = $"https://api.bgm.tv/search/subject/{Uri.EscapeDataString(query)}?type=2"; // type=2为动画
+                var url = $"https://api.bgm.tv/search/subject/{Uri.EscapeDataString(query)}?type=2";
                 var request = new HttpRequestMessage(HttpMethod.Get, url);
                 request.Headers.Add("Authorization", $"Bearer {Configuration.BangumiAccessToken}");
                 request.Headers.Add("User-Agent", "EmbyBangumiHanimePlugin/1.0.0");
@@ -317,7 +316,7 @@ namespace EmbyBangumiHanimePlugin
             }
             catch (Exception ex)
             {
-                return $"{{\"error\": \"获取Bangumi数据时出错: {ex.Message.Replace("\"", "\\\"")}\"}}";
+                return $"{{\"error\": \"获取Bangumi数据时出错: {EscapeJsonString(ex.Message)}\"}}";
             }
         }
 
@@ -366,8 +365,14 @@ namespace EmbyBangumiHanimePlugin
             }
             catch (Exception ex)
             {
-                return $"{{\"error\": \"获取Hanime数据时出错: {ex.Message.Replace("\"", "\\\"")}\"}}";
+                return $"{{\"error\": \"获取Hanime数据时出错: {EscapeJsonString(ex.Message)}\"}}";
             }
+        }
+
+        // 获取元数据（实现接口）
+        public async Task<MetadataResult> GetMetadataAsync(string title, CancellationToken cancellationToken = default)
+        {
+            return await ScrapeMetadataAsync(title, true, true, cancellationToken);
         }
 
         // 自动刮削元数据
@@ -397,61 +402,18 @@ namespace EmbyBangumiHanimePlugin
             var redirectUri = "urn:ietf:wg:oauth:2.0:oob";
             return $"https://bgm.tv/oauth/authorize?client_id={Configuration.BangumiClientId}&response_type=code&redirect_uri={Uri.EscapeDataString(redirectUri)}";
         }
-    }
 
-    // 配置类
-    public class PluginConfiguration
-    {
-        // Bangumi OAuth2配置
-        public string BangumiClientId { get; set; } = string.Empty;
-        public string BangumiClientSecret { get; set; } = string.Empty;
-        public string BangumiAccessToken { get; set; } = string.Empty;
-        public string BangumiRefreshToken { get; set; } = string.Empty;
-        public long BangumiTokenExpiryTicks { get; set; }
-        
-        // Hanime配置
-        public string HanimeUsername { get; set; } = string.Empty;
-        public string HanimeCookie { get; set; } = string.Empty;
-        public string HanimeSession { get; set; } = string.Empty;
-        
-        // 刮削设置
-        public bool EnableBangumi { get; set; } = true;
-        public bool EnableHanime { get; set; } = true;
-        public bool AutoScrape { get; set; } = true;
-        public int SearchTimeout { get; set; } = 30;
-    }
-
-    // 辅助类
-    public class BangumiTokenResponse
-    {
-        [JsonPropertyName("access_token")]
-        public string AccessToken { get; set; }
-        
-        [JsonPropertyName("token_type")]
-        public string TokenType { get; set; }
-        
-        [JsonPropertyName("expires_in")]
-        public int ExpiresIn { get; set; }
-        
-        [JsonPropertyName("refresh_token")]
-        public string RefreshToken { get; set; }
-        
-        [JsonPropertyName("scope")]
-        public string Scope { get; set; }
-    }
-
-    public class HanimeLoginResponse
-    {
-        [JsonPropertyName("success")]
-        public bool Success { get; set; }
-        
-        [JsonPropertyName("session_token")]
-        public string SessionToken { get; set; }
-    }
-
-    public class MetadataResult
-    {
-        public string BangumiData { get; set; }
-        public string HanimeData { get; set; }
+        // 转义JSON字符串
+        private string EscapeJsonString(string input)
+        {
+            if (string.IsNullOrEmpty(input))
+                return string.Empty;
+                
+            return input.Replace("\\", "\\\\")
+                       .Replace("\"", "\\\"")
+                       .Replace("\n", "\\n")
+                       .Replace("\r", "\\r")
+                       .Replace("\t", "\\t");
+        }
     }
 }
