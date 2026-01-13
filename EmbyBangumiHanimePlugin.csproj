@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="System.Text.Json" Version="7.0.4" />
+    <PackageReference Include="Emby.Server.Core" Version="4.7.0.30" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
