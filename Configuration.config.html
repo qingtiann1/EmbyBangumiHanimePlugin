@@ -21,6 +21,7 @@
             border: none; 
             cursor: pointer; 
             margin-right: 10px; 
+            margin-bottom: 10px;
             border-radius: 3px; 
         }
         button:hover { background-color: #45a049; }
@@ -33,126 +34,88 @@
         .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
         .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
-        .tab { overflow: hidden; border-bottom: 1px solid #ccc; margin-bottom: 20px; }
-        .tab button { 
-            background-color: inherit; 
-            float: left; 
-            border: none; 
-            outline: none; 
-            cursor: pointer; 
-            padding: 14px 16px; 
-            transition: 0.3s; 
-            color: #555; 
-        }
-        .tab button:hover { background-color: #f1f1f1; }
-        .tab button.active { 
-            background-color: #f1f1f1; 
-            border-bottom: 2px solid #4CAF50; 
-            color: #000; 
-        }
-        .tabcontent { display: none; }
         .help-text { color: #666; font-size: 12px; margin-top: 5px; }
+        .config-section { margin-bottom: 30px; }
+        h2 { color: #333; border-bottom: 2px solid #4CAF50; padding-bottom: 5px; }
     </style>
 </head>
 <body>
     <h1>Bangumi Hanime 插件配置</h1>
     
-    <div class="tab">
-        <button class="tablinks active" onclick="openTab(event, 'bangumi')">Bangumi 配置</button>
-        <button class="tablinks" onclick="openTab(event, 'hanime')">Hanime 配置</button>
-        <button class="tablinks" onclick="openTab(event, 'settings')">刮削设置</button>
-    </div>
-    
-    <!-- 状态消息 -->
     <div id="statusMessage" class="status"></div>
     
-    <!-- Bangumi Tab -->
-    <div id="bangumi" class="tabcontent" style="display: block;">
-        <h3>Bangumi (bgm.tv) 认证</h3>
-        <div class="form-group">
-            <label for="bangumi-client-id">Client ID:</label>
-            <input type="text" id="bangumi-client-id" placeholder="从 https://bgm.tv/dev/app 获取">
-            <div class="help-text">需要在Bangumi申请OAuth应用</div>
-        </div>
-        <div class="form-group">
-            <label for="bangumi-client-secret">Client Secret:</label>
-            <input type="text" id="bangumi-client-secret" placeholder="从 https://bgm.tv/dev/app 获取">
-        </div>
-        <div class="form-group">
-            <label for="bangumi-auth-code">授权码 (可选):</label>
-            <input type="text" id="bangumi-auth-code" placeholder="通过OAuth流程获取">
-            <button onclick="getBangumiAuthCode()">获取授权码</button>
-        </div>
-        <button onclick="testBangumiAuth()">测试连接</button>
-        <button onclick="saveSettings()">保存设置</button>
-    </div>
-    
-    <!-- Hanime Tab -->
-    <div id="hanime" class="tabcontent">
-        <h3>Hanime1 (hanime1.me) 认证</h3>
-        <p>选择一种登录方式：</p>
-        
-        <div style="margin-bottom: 20px;">
-            <h4>方式1: 账号密码登录</h4>
+    <div class="config-section">
+        <h2>Bangumi (bgm.tv) 配置</h2>
+        <div class="section">
             <div class="form-group">
-                <label for="hanime-username">用户名:</label>
-                <input type="text" id="hanime-username" placeholder="Hanime1用户名">
+                <label for="bangumi-client-id">Client ID:</label>
+                <input type="text" id="bangumi-client-id" placeholder="从 https://bgm.tv/dev/app 获取">
+                <div class="help-text">需要在Bangumi申请OAuth应用</div>
             </div>
             <div class="form-group">
-                <label for="hanime-password">密码:</label>
-                <input type="password" id="hanime-password" placeholder="Hanime1密码">
+                <label for="bangumi-client-secret">Client Secret:</label>
+                <input type="text" id="bangumi-client-secret" placeholder="从 https://bgm.tv/dev/app 获取">
             </div>
-            <button onclick="loginHanimeWithPassword()">登录</button>
-        </div>
-        
-        <div>
-            <h4>方式2: 使用Cookie</h4>
-            <div class="form-group">
-                <label for="hanime-cookie">Cookie字符串:</label>
-                <input type="text" id="hanime-cookie" placeholder="从浏览器复制Cookie">
-                <div class="help-text">在浏览器登录hanime1.me后，按F12打开开发者工具，在Console中输入: document.cookie</div>
+            <div id="bangumi-auth-section" style="display: none;">
+                <div class="form-group">
+                    <label for="bangumi-auth-code">授权码:</label>
+                    <input type="text" id="bangumi-auth-code" placeholder="点击'获取授权链接'获取">
+                </div>
+                <button onclick="authenticateBangumi()">认证 Bangumi</button>
+                <button onclick="testBangumi()">测试 Bangumi 连接</button>
             </div>
-            <button onclick="loginHanimeWithCookie()">使用Cookie登录</button>
+            <button onclick="getBangumiAuthLink()">获取 Bangumi 授权链接</button>
         </div>
     </div>
     
-    <!-- Settings Tab -->
-    <div id="settings" class="tabcontent">
-        <h3>刮削设置</h3>
-        <div class="form-group">
-            <label>
-                <input type="checkbox" id="enable-bangumi" checked> 启用Bangumi刮削
-            </label>
+    <div class="config-section">
+        <h2>Hanime1 (hanime.tv) 配置</h2>
+        <div class="section">
+            <p>选择一种登录方式：</p>
+            
+            <div style="margin-bottom: 20px;">
+                <h3>方式1: 账号密码登录</h3>
+                <div class="form-group">
+                    <label for="hanime-username">邮箱:</label>
+                    <input type="text" id="hanime-username" placeholder="Hanime1邮箱">
+                </div>
+                <div class="form-group">
+                    <label for="hanime-password">密码:</label>
+                    <input type="password" id="hanime-password" placeholder="Hanime1密码">
+                </div>
+                <button onclick="loginHanimeWithPassword()">登录 Hanime1</button>
+            </div>
+            
+            <div>
+                <h3>方式2: 使用Cookie</h3>
+                <div class="form-group">
+                    <label for="hanime-cookie">Cookie字符串:</label>
+                    <textarea id="hanime-cookie" placeholder="从浏览器复制Cookie" rows="4" style="width: 100%;"></textarea>
+                    <div class="help-text">在浏览器登录hanime.tv后，按F12打开开发者工具，在Console中输入: document.cookie</div>
+                </div>
+                <button onclick="loginHanimeWithCookie()">使用 Cookie 登录</button>
+            </div>
         </div>
-        <div class="form-group">
-            <label>
-                <input type="checkbox" id="enable-hanime" checked> 启用Hanime刮削
-            </label>
+    </div>
+    
+    <div class="config-section">
+        <h2>刮削设置</h2>
+        <div class="section">
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="enable-bangumi" checked> 启用 Bangumi 刮削
+                </label>
+            </div>
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="enable-hanime" checked> 启用 Hanime 刮削
+                </label>
+            </div>
+            <button onclick="saveSettings()">保存所有设置</button>
         </div>
-        <div class="form-group">
-            <label>
-                <input type="checkbox" id="auto-scrape" checked> 自动刮削新添加的内容
-            </label>
-        </div>
-        <button onclick="saveSettings()">保存设置</button>
     </div>
     
     <script>
-        // Tab切换功能
-        function openTab(evt, tabName) {
-            var i, tabcontent, tablinks;
-            tabcontent = document.getElementsByClassName("tabcontent");
-            for (i = 0; i < tabcontent.length; i++) {
-                tabcontent[i].style.display = "none";
-            }
-            tablinks = document.getElementsByClassName("tablinks");
-            for (i = 0; i < tablinks.length; i++) {
-                tablinks[i].className = tablinks[i].className.replace(" active", "");
-            }
-            document.getElementById(tabName).style.display = "block";
-            evt.currentTarget.className += " active";
-        }
-        
         // 显示状态消息
         function showMessage(message, type) {
             const statusDiv = document.getElementById('statusMessage');
@@ -165,83 +128,127 @@
             }, 5000);
         }
         
-        // 获取Bangumi授权码
-        function getBangumiAuthCode() {
+        // 获取Bangumi授权链接
+        function getBangumiAuthLink() {
             const clientId = document.getElementById('bangumi-client-id').value;
-            if (!clientId) {
-                showMessage('请先填写Client ID', 'error');
+            const clientSecret = document.getElementById('bangumi-client-secret').value;
+            
+            if (!clientId || !clientSecret) {
+                showMessage('请先填写 Client ID 和 Client Secret', 'error');
                 return;
             }
             
-            const redirectUri = window.location.origin + '/emby/web/configurationpage';
-            const authUrl = `https://bgm.tv/oauth/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}`;
+            // 保存Client ID和Secret
+            saveSettings();
             
-            window.open(authUrl, '_blank');
-            showMessage('请在打开的页面中授权，然后将授权码复制到输入框中', 'info');
+            // 获取授权URL
+            fetch('/emby/Plugins/EmbyBangumiHanimePlugin/GetAuthUrl', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Emby-Token': getApiKey()
+                }
+            })
+            .then(response => response.text())
+            .then(authUrl => {
+                if (authUrl) {
+                    document.getElementById('bangumi-auth-section').style.display = 'block';
+                    window.open(authUrl, '_blank');
+                    showMessage('请在打开的页面中授权，然后将授权码复制到输入框中', 'info');
+                } else {
+                    showMessage('无法获取授权链接，请检查Client ID和Secret', 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('获取授权链接失败: ' + error.message, 'error');
+            });
+        }
+        
+        // 认证Bangumi
+        function authenticateBangumi() {
+            const authCode = document.getElementById('bangumi-auth-code').value;
+            if (!authCode) {
+                showMessage('请输入授权码', 'error');
+                return;
+            }
+            
+            fetch('/emby/Plugins/EmbyBangumiHanimePlugin/AuthenticateBangumi?code=' + encodeURIComponent(authCode), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Emby-Token': getApiKey()
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Bangumi 认证成功！', 'success');
+                } else {
+                    showMessage('Bangumi 认证失败: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('认证失败: ' + error.message, 'error');
+            });
         }
         
         // 测试Bangumi连接
-        async function testBangumiAuth() {
-            const authCode = document.getElementById('bangumi-auth-code').value;
-            if (!authCode) {
-                showMessage('请先获取并输入授权码', 'error');
-                return;
-            }
-            
-            try {
-                const response = await fetch('/emby/Plugins/EmbyBangumiHanimePlugin/AuthenticateBangumi?code=' + encodeURIComponent(authCode), {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Emby-Token': getApiKey()
-                    }
-                });
-                
-                if (response.ok) {
-                    showMessage('Bangumi认证成功！', 'success');
-                } else {
-                    showMessage('Bangumi认证失败', 'error');
+        function testBangumi() {
+            fetch('/emby/Plugins/EmbyBangumiHanimePlugin/TestBangumi', {
+                method: 'GET',
+                headers: {
+                    'X-Emby-Token': getApiKey()
                 }
-            } catch (error) {
-                showMessage('连接失败: ' + error.message, 'error');
-            }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.authenticated) {
+                    showMessage('Bangumi 连接测试成功！', 'success');
+                } else {
+                    showMessage('Bangumi 连接失败，请重新认证', 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('连接测试失败: ' + error.message, 'error');
+            });
         }
         
         // Hanime账号密码登录
-        async function loginHanimeWithPassword() {
+        function loginHanimeWithPassword() {
             const username = document.getElementById('hanime-username').value;
             const password = document.getElementById('hanime-password').value;
             
             if (!username || !password) {
-                showMessage('请输入用户名和密码', 'error');
+                showMessage('请输入邮箱和密码', 'error');
                 return;
             }
             
-            try {
-                const response = await fetch('/emby/Plugins/EmbyBangumiHanimePlugin/AuthenticateHanime', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Emby-Token': getApiKey()
-                    },
-                    body: JSON.stringify({
-                        username: username,
-                        password: password
-                    })
-                });
-                
-                if (response.ok) {
-                    showMessage('Hanime1登录成功！', 'success');
+            fetch('/emby/Plugins/EmbyBangumiHanimePlugin/AuthenticateHanime', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Emby-Token': getApiKey()
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Hanime1 登录成功！', 'success');
                 } else {
-                    showMessage('Hanime1登录失败', 'error');
+                    showMessage('Hanime1 登录失败: ' + data.message, 'error');
                 }
-            } catch (error) {
+            })
+            .catch(error => {
                 showMessage('登录失败: ' + error.message, 'error');
-            }
+            });
         }
         
         // Hanime Cookie登录
-        async function loginHanimeWithCookie() {
+        function loginHanimeWithCookie() {
             const cookie = document.getElementById('hanime-cookie').value;
             
             if (!cookie) {
@@ -249,26 +256,27 @@
                 return;
             }
             
-            try {
-                const response = await fetch('/emby/Plugins/EmbyBangumiHanimePlugin/AuthenticateHanimeWithCookie', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Emby-Token': getApiKey()
-                    },
-                    body: JSON.stringify({
-                        cookie: cookie
-                    })
-                });
-                
-                if (response.ok) {
+            fetch('/emby/Plugins/EmbyBangumiHanimePlugin/AuthenticateHanimeWithCookie', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Emby-Token': getApiKey()
+                },
+                body: JSON.stringify({
+                    cookie: cookie
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
                     showMessage('Hanime1 Cookie登录成功！', 'success');
                 } else {
-                    showMessage('Hanime1 Cookie登录失败', 'error');
+                    showMessage('Hanime1 Cookie登录失败: ' + data.message, 'error');
                 }
-            } catch (error) {
+            })
+            .catch(error => {
                 showMessage('登录失败: ' + error.message, 'error');
-            }
+            });
         }
         
         // 获取API密钥
@@ -278,75 +286,66 @@
         }
         
         // 保存设置
-        async function saveSettings() {
+        function saveSettings() {
             const settings = {
                 BangumiClientId: document.getElementById('bangumi-client-id').value,
                 BangumiClientSecret: document.getElementById('bangumi-client-secret').value,
                 HanimeUsername: document.getElementById('hanime-username').value,
-                HanimePassword: document.getElementById('hanime-password').value,
-                HanimeCookies: document.getElementById('hanime-cookie').value,
                 EnableBangumi: document.getElementById('enable-bangumi').checked,
-                EnableHanime: document.getElementById('enable-hanime').checked,
-                AutoScrape: document.getElementById('auto-scrape').checked
+                EnableHanime: document.getElementById('enable-hanime').checked
             };
             
-            try {
-                const response = await fetch('/emby/Plugins/EmbyBangumiHanimePlugin/Configuration', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Emby-Token': getApiKey()
-                    },
-                    body: JSON.stringify(settings)
-                });
-                
-                if (response.ok) {
+            fetch('/emby/Plugins/EmbyBangumiHanimePlugin/Configuration', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Emby-Token': getApiKey()
+                },
+                body: JSON.stringify(settings)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
                     showMessage('设置保存成功！', 'success');
                 } else {
-                    showMessage('保存失败', 'error');
+                    showMessage('保存失败: ' + data.message, 'error');
                 }
-            } catch (error) {
+            })
+            .catch(error => {
                 showMessage('保存失败: ' + error.message, 'error');
-            }
+            });
         }
         
         // 加载设置
-        async function loadSettings() {
-            try {
-                const response = await fetch('/emby/Plugins/EmbyBangumiHanimePlugin/Configuration', {
-                    headers: {
-                        'X-Emby-Token': getApiKey()
-                    }
-                });
-                
-                if (response.ok) {
-                    const settings = await response.json();
-                    
-                    // 填充表单
+        function loadSettings() {
+            fetch('/emby/Plugins/EmbyBangumiHanimePlugin/Configuration', {
+                headers: {
+                    'X-Emby-Token': getApiKey()
+                }
+            })
+            .then(response => response.json())
+            .then(settings => {
+                if (settings) {
                     document.getElementById('bangumi-client-id').value = settings.BangumiClientId || '';
                     document.getElementById('bangumi-client-secret').value = settings.BangumiClientSecret || '';
                     document.getElementById('hanime-username').value = settings.HanimeUsername || '';
-                    document.getElementById('hanime-cookie').value = settings.HanimeCookies || '';
                     document.getElementById('enable-bangumi').checked = settings.EnableBangumi !== false;
                     document.getElementById('enable-hanime').checked = settings.EnableHanime !== false;
-                    document.getElementById('auto-scrape').checked = settings.AutoScrape !== false;
+                    
+                    // 如果有Client ID和Secret，显示认证部分
+                    if (settings.BangumiClientId && settings.BangumiClientSecret) {
+                        document.getElementById('bangumi-auth-section').style.display = 'block';
+                    }
                 }
-            } catch (error) {
+            })
+            .catch(error => {
                 console.error('加载设置失败:', error);
-            }
+            });
         }
         
         // 页面加载时获取设置
         window.onload = function() {
             loadSettings();
-            
-            // 检查URL中是否有授权码
-            const urlParams = new URLSearchParams(window.location.search);
-            const authCode = urlParams.get('code');
-            if (authCode) {
-                document.getElementById('bangumi-auth-code').value = authCode;
-                showMessage('已获取授权码，请点击"测试连接"完成认证', 'info');
-            }
         };
     </script>
 </body>
