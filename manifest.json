@@ -1,0 +1,9 @@
+{
+  "name": "EmbyBangumiHanimePlugin",
+  "guid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "version": "1.0.0",
+  "description": "Anime metadata scraper for Emby from Bangumi and Hanime",
+  "category": "Metadata",
+  "targetAbi": "4.8.0.0",
+  "sourceUrl": "https://github.com/yourusername/EmbyBangumiHanimePlugin"
+}
