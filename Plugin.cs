@@ -1,32 +1,24 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
-using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 using MediaBrowser.Common.Configuration;
 using MediaBrowser.Common.Plugins;
-using MediaBrowser.Model.Plugins;
 using MediaBrowser.Model.Serialization;
+using MediaBrowser.Model.Plugins;
+using System;
+using System.Collections.Generic;
 
 namespace EmbyBangumiHanimePlugin
 {
     public class Plugin : BasePlugin<PluginConfiguration>, IHasWebPages
     {
-        private readonly IHttpClientFactory _httpClientFactory;
-        
-        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer, IHttpClientFactory httpClientFactory) 
+        public Plugin(IApplicationPaths applicationPaths, IXmlSerializer xmlSerializer)
             : base(applicationPaths, xmlSerializer)
         {
-            _httpClientFactory = httpClientFactory;
             Instance = this;
         }
 
-        public override string Name => "EmbyBangumiHanimePlugin";
-        
-        public override string Description => "Anime metadata scraper for Emby";
-        
+        public override string Name => "Bangumi & Hanime Scraper";
+        public override Guid Id => new Guid("a1b2c3d4-e5f6-7890-a1b2-c3d4e5f67890"); // 随机生成的唯一GUID
+        public override string Description => "从 Bangumi 和 Hanime1 获取番剧元数据";
+
         public static Plugin Instance { get; private set; }
 
         public IEnumerable<PluginPageInfo> GetPages()
@@ -35,22 +27,10 @@ namespace EmbyBangumiHanimePlugin
             {
                 new PluginPageInfo
                 {
-                    Name = "EmbyBangumiHanimePlugin",
+                    Name = "BangumiHanimeConfig",
                     EmbeddedResourcePath = GetType().Namespace + ".Configuration.config.html"
                 }
             };
         }
-    }
-
-    public class PluginConfiguration : BasePluginConfiguration
-    {
-        public string BangumiClientId { get; set; }
-        public string BangumiClientSecret { get; set; }
-        public string BangumiRefreshToken { get; set; }
-        public long? TokenExpiryTime { get; set; }
-        public string HanimeLoginMethod { get; set; } = "credentials";
-        public string HanimeUsername { get; set; }
-        public string HanimePassword { get; set; }
-        public string HanimeCookie { get; set; }
     }
 }
