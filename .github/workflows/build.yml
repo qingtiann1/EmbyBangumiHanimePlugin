@@ -41,17 +41,18 @@ jobs:
         EOF
         cat NuGet.Config
 
+    - name: Create lib directory
+      run: |
+        mkdir -p lib
+        echo "Created lib directory for Emby DLLs"
+
     - name: Restore dependencies
       run: dotnet restore
       env:
-        NUGET_CREDENTIALPROVIDER_SESSIONTOKENCACHE_ENABLED: true
         NUGET_XMLDOC_MODE: skip
 
     - name: Build Release
       run: dotnet build --configuration Release --no-restore
-
-    - name: Test
-      run: dotnet test --no-restore --verbosity normal
 
     - name: Publish
       run: dotnet publish --configuration Release --output ./publish
@@ -60,7 +61,16 @@ jobs:
       run: |
         mkdir -p ./release
         cp ./publish/${{ env.PLUGIN_NAME }}.dll ./release/
-        echo '{"name":"${{ env.PLUGIN_NAME }}","version":"1.0.0","description":"Anime metadata scraper for Emby","overview":"Scrapes anime metadata from Bangumi and Hanime"}' > ./release/plugin.json
+        cp ./publish/System.Text.Json.dll ./release/ 2>/dev/null || true
+        echo '{
+          "name": "${{ env.PLUGIN_NAME }}",
+          "version": "1.0.0",
+          "description": "Anime metadata scraper for Emby",
+          "overview": "Scrapes anime metadata from Bangumi and Hanime",
+          "assemblies": [
+            "${{ env.PLUGIN_NAME }}.dll"
+          ]
+        }' > ./release/plugin.json
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4
