@@ -1,28 +1,46 @@
-using MediaBrowser.Model.Plugins;
+using System.Text.Json.Serialization;
 
 namespace EmbyBangumiHanimePlugin
 {
-    public class PluginConfiguration : BasePluginConfiguration
+    public class PluginConfiguration
     {
         // Bangumi OAuth2配置
+        [JsonPropertyName("bangumiClientId")]
         public string BangumiClientId { get; set; } = string.Empty;
+        
+        [JsonPropertyName("bangumiClientSecret")]
         public string BangumiClientSecret { get; set; } = string.Empty;
+        
+        [JsonPropertyName("bangumiAccessToken")]
         public string BangumiAccessToken { get; set; } = string.Empty;
+        
+        [JsonPropertyName("bangumiRefreshToken")]
         public string BangumiRefreshToken { get; set; } = string.Empty;
-        public bool IsBangumiAuthenticated { get; set; } = false;
+        
+        [JsonPropertyName("bangumiTokenExpiry")]
+        public long BangumiTokenExpiry { get; set; }
         
         // Hanime配置
+        [JsonPropertyName("hanimeUsername")]
         public string HanimeUsername { get; set; } = string.Empty;
-        public string HanimePassword { get; set; } = string.Empty;
-        public string HanimeCookies { get; set; } = string.Empty;
+        
+        [JsonPropertyName("hanimeCookie")]
+        public string HanimeCookie { get; set; } = string.Empty;
+        
+        [JsonPropertyName("hanimeSession")]
+        public string HanimeSession { get; set; } = string.Empty;
         
         // 刮削设置
+        [JsonPropertyName("enableBangumi")]
         public bool EnableBangumi { get; set; } = true;
-        public bool EnableHanime { get; set; } = true;
-        public bool AutoScrape { get; set; } = true;
-        public int SearchTimeout { get; set; } = 30;
         
-        // 令牌过期时间（用于检查）
-        public long BangumiTokenExpiryTicks { get; set; }
+        [JsonPropertyName("enableHanime")]
+        public bool EnableHanime { get; set; } = true;
+        
+        [JsonPropertyName("autoScrape")]
+        public bool AutoScrape { get; set; } = true;
+        
+        [JsonPropertyName("searchTimeout")]
+        public int SearchTimeout { get; set; } = 30;
     }
 }
