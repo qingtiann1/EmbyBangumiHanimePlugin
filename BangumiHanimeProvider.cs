@@ -3,10 +3,11 @@ using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
-using MediaBrowser.Model.Net; // 【关键修复】引用 HttpResponseInfo 所在的命名空间
+using MediaBrowser.Model.Net; // 【关键修复】必须引用这个，否则找不到 HttpResponseInfo
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Net; // 用于 WebUtility.UrlEncode
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -59,8 +60,8 @@ namespace EmbyBangumiHanimePlugin
 
             try
             {
-                // 【修复】使用 System.Net.WebUtility 以兼容 .NET 6
-                var query = System.Net.WebUtility.UrlEncode(searchInfo.Name);
+                // 使用 WebUtility.UrlEncode 确保跨平台兼容
+                var query = WebUtility.UrlEncode(searchInfo.Name);
                 using var client = _httpClientFactory.CreateClient();
                 client.DefaultRequestHeaders.Add("User-Agent", "EmbyBangumiPlugin/1.0");
                 
@@ -97,7 +98,7 @@ namespace EmbyBangumiHanimePlugin
             return list;
         }
 
-        // 【关键修复】确保返回 Task<HttpResponseInfo> 且已引用 MediaBrowser.Model.Net
+        // 【关键修复】现在编译器能正确识别 HttpResponseInfo 类型了
         public async Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
         {
             var client = _httpClientFactory.CreateClient();
@@ -161,8 +162,7 @@ namespace EmbyBangumiHanimePlugin
                     client.DefaultRequestHeaders.Add("Cookie", config.HanimeCookie);
                 }
 
-                // 【修复】使用 System.Net.WebUtility 以兼容 .NET 6
-                var searchUrl = $"https://hanime1.me/search?query={System.Net.WebUtility.UrlEncode(query)}";
+                var searchUrl = $"https://hanime1.me/search?query={WebUtility.UrlEncode(query)}";
                 var html = await client.GetStringAsync(searchUrl, ct);
 
                 var match = Regex.Match(html, "href=\"(https://hanime1\\.me/watch\\?v=[^\"]+)\"");
