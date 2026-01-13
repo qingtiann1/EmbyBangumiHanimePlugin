@@ -23,33 +23,8 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Remove any existing NuGet.Config to avoid SSL issues
-      run: |
-        ls -la
-        rm -f NuGet.Config || true
-        echo "Removed any existing NuGet.Config file"
-
-    - name: Create fresh NuGet.Config with official source only
-      run: |
-        cat > NuGet.Config << EOF
-        <?xml version="1.0" encoding="utf-8"?>
-        <configuration>
-          <packageSources>
-            <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
-          </packageSources>
-        </configuration>
-        EOF
-        cat NuGet.Config
-
-    - name: Create lib directory
-      run: |
-        mkdir -p lib
-        echo "Created lib directory for Emby DLLs"
-
     - name: Restore dependencies
       run: dotnet restore
-      env:
-        NUGET_XMLDOC_MODE: skip
 
     - name: Build Release
       run: dotnet build --configuration Release --no-restore
@@ -61,15 +36,12 @@ jobs:
       run: |
         mkdir -p ./release
         cp ./publish/${{ env.PLUGIN_NAME }}.dll ./release/
-        cp ./publish/System.Text.Json.dll ./release/ 2>/dev/null || true
         echo '{
           "name": "${{ env.PLUGIN_NAME }}",
           "version": "1.0.0",
           "description": "Anime metadata scraper for Emby",
           "overview": "Scrapes anime metadata from Bangumi and Hanime",
-          "assemblies": [
-            "${{ env.PLUGIN_NAME }}.dll"
-          ]
+          "assemblies": ["${{ env.PLUGIN_NAME }}.dll"]
         }' > ./release/plugin.json
 
     - name: Upload artifact
