@@ -17,29 +17,4 @@
     <EmbeddedResource Include="Configuration.config.html" />
   </ItemGroup>
 
-  <!-- 添加对 Emby 程序集的引用 -->
-  <ItemGroup>
-    <Reference Include="MediaBrowser.Common">
-      <HintPath>lib\MediaBrowser.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="MediaBrowser.Model">
-      <HintPath>lib\MediaBrowser.Model.dll</HintPath>
-    </Reference>
-    <Reference Include="MediaBrowser.Controller">
-      <HintPath>lib\MediaBrowser.Controller.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="lib\MediaBrowser.Common.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="lib\MediaBrowser.Model.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="lib\MediaBrowser.Controller.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
 </Project>
