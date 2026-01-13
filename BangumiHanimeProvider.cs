@@ -3,7 +3,7 @@ using MediaBrowser.Controller.Entities.TV;
 using MediaBrowser.Controller.Providers;
 using MediaBrowser.Model.Entities;
 using MediaBrowser.Model.Providers;
-using MediaBrowser.Model.Net; // 必须引用这个以使用 HttpResponseInfo
+using MediaBrowser.Model.Net; // 【关键修复】引用 HttpResponseInfo 所在的命名空间
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -59,7 +59,8 @@ namespace EmbyBangumiHanimePlugin
 
             try
             {
-                var query = System.Web.HttpUtility.UrlEncode(searchInfo.Name);
+                // 【修复】使用 System.Net.WebUtility 以兼容 .NET 6
+                var query = System.Net.WebUtility.UrlEncode(searchInfo.Name);
                 using var client = _httpClientFactory.CreateClient();
                 client.DefaultRequestHeaders.Add("User-Agent", "EmbyBangumiPlugin/1.0");
                 
@@ -96,11 +97,10 @@ namespace EmbyBangumiHanimePlugin
             return list;
         }
 
-        // 修复：返回类型必须是 Task<HttpResponseInfo> 而不是 HttpResponseMessage
+        // 【关键修复】确保返回 Task<HttpResponseInfo> 且已引用 MediaBrowser.Model.Net
         public async Task<HttpResponseInfo> GetImageResponse(string url, CancellationToken cancellationToken)
         {
             var client = _httpClientFactory.CreateClient();
-            // 这里可以添加 Hanime 的 Cookie，如果下载图片需要的话
             var response = await client.GetAsync(url, cancellationToken);
             
             return new HttpResponseInfo
@@ -161,7 +161,8 @@ namespace EmbyBangumiHanimePlugin
                     client.DefaultRequestHeaders.Add("Cookie", config.HanimeCookie);
                 }
 
-                var searchUrl = $"https://hanime1.me/search?query={System.Web.HttpUtility.UrlEncode(query)}";
+                // 【修复】使用 System.Net.WebUtility 以兼容 .NET 6
+                var searchUrl = $"https://hanime1.me/search?query={System.Net.WebUtility.UrlEncode(query)}";
                 var html = await client.GetStringAsync(searchUrl, ct);
 
                 var match = Regex.Match(html, "href=\"(https://hanime1\\.me/watch\\?v=[^\"]+)\"");
@@ -190,13 +191,11 @@ namespace EmbyBangumiHanimePlugin
         private async Task CheckAndRefreshToken(PluginConfiguration config)
         {
             if (string.IsNullOrEmpty(config.BangumiRefreshToken)) return;
-            // 简单实现，如果有效期不存在，假设未过期或不处理
             if (config.BangumiTokenExpiry != DateTime.MinValue && DateTime.Now < config.BangumiTokenExpiry.AddDays(-3)) return; 
 
             try
             {
                 using var client = _httpClientFactory.CreateClient();
-                // 占位符，需填入实际 APP ID
                 var content = new FormUrlEncodedContent(new[]
                 {
                     new KeyValuePair<string, string>("grant_type", "refresh_token"),
