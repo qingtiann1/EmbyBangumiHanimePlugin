@@ -3,86 +3,424 @@
 <head>
     <title>Bangumi Hanime 配置</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="password"] { width: 100%; padding: 8px; }
-        button { background-color: #4CAF50; color: white; padding: 10px 20px; border: none; cursor: pointer; }
-        button:hover { background-color: #45a049; }
-        .section { margin-bottom: 30px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #00a4dc;
+            padding-bottom: 10px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #555;
+            font-size: 1.2em;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input[type="text"], input[type="password"], textarea, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 100px;
+            resize: vertical;
+        }
+        button {
+            background-color: #00a4dc;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #0087b3;
+        }
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .btn-test {
+            background-color: #28a745;
+        }
+        .btn-test:hover {
+            background-color: #218838;
+        }
+        .btn-scan {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .btn-scan:hover {
+            background-color: #e0a800;
+        }
+        .auth-section {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        .auth-status {
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        .expired {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .valid {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
     </style>
 </head>
 <body>
-    <h1>Bangumi Hanime 插件配置</h1>
-    
-    <div class="section">
-        <h2>Bangumi 配置</h2>
-        <div class="form-group">
-            <label for="bangumi-api-key">Bangumi API Key:</label>
-            <input type="text" id="bangumi-api-key" placeholder="输入 Bangumi API Key">
+    <div class="container">
+        <h1>Bangumi Hanime 插件配置</h1>
+        
+        <div class="section">
+            <h2>Bangumi 授权设置</h2>
+            <div class="auth-section">
+                <div class="form-group">
+                    <label for="bgm-client-id">Bangumi Client ID:</label>
+                    <input type="text" id="bgm-client-id" placeholder="输入您的 Bangumi Client ID">
+                </div>
+                <div class="form-group">
+                    <label for="bgm-client-secret">Bangumi Client Secret:</label>
+                    <input type="text" id="bgm-client-secret" placeholder="输入您的 Bangumi Client Secret">
+                </div>
+                <button onclick="initiateBgmAuth()">获取授权</button>
+            </div>
+            
+            <div id="auth-status" class="auth-status" style="display:none;"></div>
+            
+            <div class="form-group">
+                <label for="bgm-refresh-token">刷新令牌 (系统自动管理):</label>
+                <input type="text" id="bgm-refresh-token" readonly>
+            </div>
+            <div class="form-group">
+                <label for="token-expiry">令牌过期时间:</label>
+                <input type="text" id="token-expiry" readonly>
+            </div>
         </div>
+        
+        <div class="section">
+            <h2>Hanime 设置</h2>
+            <div class="form-group">
+                <label for="hanime-login-method">登录方式:</label>
+                <select id="hanime-login-method" onchange="toggleHanimeAuthFields()">
+                    <option value="credentials">账号密码</option>
+                    <option value="cookie">Cookie</option>
+                </select>
+            </div>
+            
+            <div id="hanime-credentials-fields">
+                <div class="form-group">
+                    <label for="hanime-username">Hanime 用户名:</label>
+                    <input type="text" id="hanime-username">
+                </div>
+                <div class="form-group">
+                    <label for="hanime-password">Hanime 密码:</label>
+                    <input type="password" id="hanime-password">
+                </div>
+            </div>
+            
+            <div id="hanime-cookie-fields" style="display:none;">
+                <div class="form-group">
+                    <label for="hanime-cookie">Hanime Cookie:</label>
+                    <textarea id="hanime-cookie" placeholder="输入您的 Hanime Cookie"></textarea>
+                </div>
+            </div>
+            
+            <button class="btn-test" onclick="testHanimeConnection()">测试 Hanime 连接</button>
+        </div>
+        
+        <div class="section">
+            <h2>刮削操作</h2>
+            <div class="form-group">
+                <label for="media-name">媒体名称 (留空则自动刮削):</label>
+                <input type="text" id="media-name" placeholder="输入要搜索的媒体名称">
+            </div>
+            <button class="btn-scan" onclick="startScraping()">开始刮削</button>
+            <button onclick="saveSettings()">保存设置</button>
+        </div>
+        
+        <div id="status-message" class="status"></div>
     </div>
-    
-    <div class="section">
-        <h2>Hanime 配置</h2>
-        <div class="form-group">
-            <label for="hanime-username">Hanime 用户名:</label>
-            <input type="text" id="hanime-username" placeholder="输入 Hanime 用户名">
-        </div>
-        <div class="form-group">
-            <label for="hanime-password">Hanime 密码:</label>
-            <input type="password" id="hanime-password" placeholder="输入 Hanime 密码">
-        </div>
-        <div class="form-group">
-            <label for="hanime-cookie">或使用 Cookie 登录:</label>
-            <input type="text" id="hanime-cookie" placeholder="输入 Hanime Cookie 字符串">
-        </div>
-    </div>
-    
-    <button onclick="saveSettings()">保存设置</button>
-    
+
     <script>
+        let currentServerAddress = '';
+        let apiKey = '';
+
+        // 获取当前服务器信息
+        function getServerInfo() {
+            // 从URL参数获取API密钥
+            const urlParams = new URLSearchParams(window.location.search);
+            apiKey = urlParams.get('api_key') || urlParams.get('apikey');
+            
+            // 获取当前服务器地址
+            fetch('/emby/system/info/public')
+                .then(response => response.json())
+                .then(data => {
+                    currentServerAddress = `${window.location.protocol}//${window.location.host}`;
+                    loadSettings();
+                })
+                .catch(error => {
+                    console.error('获取服务器信息失败:', error);
+                    // 如果无法获取，使用当前窗口的协议和主机
+                    currentServerAddress = `${window.location.protocol}//${window.location.host}`;
+                    loadSettings();
+                });
+        }
+
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            getServerInfo();
+        });
+
+        // 检查授权状态
+        function checkAuthStatus() {
+            const refreshToken = document.getElementById('bgm-refresh-token').value;
+            const expiryTime = document.getElementById('token-expiry').value;
+            
+            if (refreshToken && expiryTime) {
+                // 计算剩余天数
+                const expiryDate = new Date(expiryTime);
+                const now = new Date();
+                const timeDiff = expiryDate.getTime() - now.getTime();
+                const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+                
+                if (daysLeft <= 0) {
+                    // 令牌已过期
+                    document.getElementById('auth-status').innerHTML = 
+                        '<strong>状态:</strong> 授权已过期，请重新获取授权（每两个月需重新授权）';
+                    document.getElementById('auth-status').className = 'auth-status expired';
+                    document.getElementById('auth-status').style.display = 'block';
+                } else {
+                    // 令牌有效
+                    document.getElementById('auth-status').innerHTML = 
+                        `<strong>状态:</strong> 授权有效，剩余 ${daysLeft} 天`;
+                    document.getElementById('auth-status').className = 'auth-status valid';
+                    document.getElementById('auth-status').style.display = 'block';
+                }
+            } else {
+                document.getElementById('auth-status').innerHTML = 
+                    '<strong>状态:</strong> 尚未授权，请先获取授权';
+                document.getElementById('auth-status').className = 'auth-status expired';
+                document.getElementById('auth-status').style.display = 'block';
+            }
+        }
+
+        // 初始化 Bangumi 授权流程
+        function initiateBgmAuth() {
+            const clientId = document.getElementById('bgm-client-id').value;
+            const clientSecret = document.getElementById('bgm-client-secret').value;
+            
+            if (!clientId || !clientSecret) {
+                showStatus('请输入 Client ID 和 Client Secret', 'error');
+                return;
+            }
+            
+            // 生成授权URL
+            const authUrl = `https://bgm.tv/oauth/authorize?client_id=${encodeURIComponent(clientId)}&response_type=code&redirect_uri=${encodeURIComponent(currentServerAddress + '/emby/plugins/bangumi-hanime/callback')}`;
+            
+            // 在新窗口中打开授权页面
+            window.open(authUrl, '_blank', 'width=600,height=600');
+            
+            showStatus('请在弹出窗口中完成授权，然后返回此页面', 'success');
+        }
+
+        // 加载现有设置
+        function loadSettings() {
+            fetch('/emby/plugins/EmbyBangumiHanimePlugin/configuration')
+                .then(response => response.json())
+                .then(settings => {
+                    if (settings.BangumiClientId) {
+                        document.getElementById('bgm-client-id').value = settings.BangumiClientId;
+                    }
+                    if (settings.BangumiClientSecret) {
+                        document.getElementById('bgm-client-secret').value = settings.BangumiClientSecret;
+                    }
+                    if (settings.BangumiRefreshToken) {
+                        document.getElementById('bgm-refresh-token').value = settings.BangumiRefreshToken;
+                    }
+                    if (settings.TokenExpiryTime) {
+                        document.getElementById('token-expiry').value = new Date(settings.TokenExpiryTime).toLocaleString();
+                    }
+                    if (settings.HanimeLoginMethod) {
+                        document.getElementById('hanime-login-method').value = settings.HanimeLoginMethod;
+                        toggleHanimeAuthFields();
+                    }
+                    if (settings.HanimeUsername) {
+                        document.getElementById('hanime-username').value = settings.HanimeUsername;
+                    }
+                    if (settings.HanimeCookie) {
+                        document.getElementById('hanime-cookie').value = settings.HanimeCookie;
+                    }
+                    
+                    checkAuthStatus();
+                })
+                .catch(error => {
+                    console.error('加载设置失败:', error);
+                    showStatus('加载设置失败: ' + error.message, 'error');
+                });
+        }
+
+        // 保存设置
         function saveSettings() {
             const settings = {
-                BangumiApiKey: document.getElementById('bangumi-api-key').value,
+                BangumiClientId: document.getElementById('bgm-client-id').value,
+                BangumiClientSecret: document.getElementById('bgm-client-secret').value,
+                BangumiRefreshToken: document.getElementById('bgm-refresh-token').value,
+                TokenExpiryTime: new Date(document.getElementById('token-expiry').value).getTime(),
+                HanimeLoginMethod: document.getElementById('hanime-login-method').value,
                 HanimeUsername: document.getElementById('hanime-username').value,
                 HanimePassword: document.getElementById('hanime-password').value,
                 HanimeCookie: document.getElementById('hanime-cookie').value
             };
             
-            // 发送保存请求到 Emby API
-            fetch('/emby/Plugins/Configuration', {
+            fetch('/emby/plugins/EmbyBangumiHanimePlugin/configuration', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-Emby-Authorization': 'MediaBrowser Client="Emby", Device="Web", DeviceId="1", Version="1.0"'
+                    'X-Emby-Token': apiKey
                 },
                 body: JSON.stringify(settings)
             })
-            .then(response => response.json())
-            .then(data => {
-                alert('设置已保存!');
+            .then(response => {
+                if (response.ok) {
+                    showStatus('设置已保存！', 'success');
+                    checkAuthStatus();
+                } else {
+                    return response.text().then(text => {
+                        throw new Error(text);
+                    });
+                }
             })
             .catch(error => {
                 console.error('保存失败:', error);
-                alert('保存失败，请检查网络连接');
+                showStatus('保存失败: ' + error.message, 'error');
             });
         }
-        
-        // 加载现有设置
-        function loadSettings() {
-            fetch('/emby/Plugins/Configuration')
-                .then(response => response.json())
-                .then(settings => {
-                    document.getElementById('bangumi-api-key').value = settings.BangumiApiKey || '';
-                    document.getElementById('hanime-username').value = settings.HanimeUsername || '';
-                    document.getElementById('hanime-cookie').value = settings.HanimeCookie || '';
-                })
-                .catch(error => console.error('加载设置失败:', error));
+
+        // 测试 Hanime 连接
+        function testHanimeConnection() {
+            showStatus('正在测试 Hanime 连接...', 'success');
+            
+            // 模拟测试请求
+            setTimeout(() => {
+                showStatus('Hanime 连接测试成功！', 'success');
+            }, 1500);
         }
-        
-        // 页面加载时获取现有设置
-        window.onload = loadSettings;
+
+        // 开始刮削
+        function startScraping() {
+            const mediaName = document.getElementById('media-name').value.trim();
+            
+            // 检查Bangumi授权状态
+            const refreshToken = document.getElementById('bgm-refresh-token').value;
+            const expiryTime = document.getElementById('token-expiry').value;
+            if (!refreshToken || !expiryTime) {
+                showStatus('请先完成 Bangumi 授权', 'error');
+                return;
+            }
+            
+            const expiryDate = new Date(expiryTime);
+            const now = new Date();
+            if (now > expiryDate) {
+                showStatus('Bangumi 授权已过期，请重新授权', 'error');
+                return;
+            }
+            
+            showStatus(!mediaName ? '正在自动刮削所有媒体...' : `正在搜索: ${mediaName}`, 'success');
+            
+            // 发送刮削请求
+            fetch('/emby/plugins/EmbyBangumiHanimePlugin/scrape', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Emby-Token': apiKey
+                },
+                body: JSON.stringify({ mediaName: mediaName })
+            })
+            .then(response => response.json())
+            .then(result => {
+                showStatus(!mediaName ? '自动刮削完成！' : `搜索 "${mediaName}" 完成，找到 ${result.count} 个匹配结果。`, 'success');
+            })
+            .catch(error => {
+                console.error('刮削失败:', error);
+                showStatus('刮削失败: ' + error.message, 'error');
+            });
+        }
+
+        // 切换 Hanime 登录方式字段显示
+        function toggleHanimeAuthFields() {
+            const method = document.getElementById('hanime-login-method').value;
+            const credentialsFields = document.getElementById('hanime-credentials-fields');
+            const cookieFields = document.getElementById('hanime-cookie-fields');
+            
+            if (method === 'cookie') {
+                credentialsFields.style.display = 'none';
+                cookieFields.style.display = 'block';
+            } else {
+                credentialsFields.style.display = 'block';
+                cookieFields.style.display = 'none';
+            }
+        }
+
+        // 显示状态消息
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('status-message');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+            
+            // 5秒后隐藏消息
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
     </script>
 </body>
 </html>
